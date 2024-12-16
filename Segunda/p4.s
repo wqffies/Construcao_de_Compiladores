@@ -8,11 +8,11 @@
 _start:
   MOV $7374, %rax
   MOV $657, %rbx
-  MUL %rbx
+  IMUL %rbx
   MOV %rax, %rbx
   MOV $13121517, %rax
   MOV $256, %rcx
-  MUL %rcx
+  IMUL %rcx
   ADD %rbx, %rax
   MOV $4294979641, %rbx
   ADD %rbx, %rax
