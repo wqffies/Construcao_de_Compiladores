@@ -8,12 +8,13 @@
 _start:
   MOV $512, %rax
   MOV $65, %rbx
-  MUL %rbx
+  IMUL %rbx
   MOV %rax, %rbx
   MOV $5657, %rax
   MOV $23, %rcx
-  MUL %rcx
-  SUB %rbx, %rax
+  IMUL %rcx
+  SUB %rax, %rbx
+  MOV %rbx, %rax
 
   call imprime_num
   call sair
