@@ -1,9 +1,3 @@
-#Equipe:
-# Alessandra Maria Ramos 20200136795
-# Anna Myllenne Araújo 20220005899
-# Enrique Pedrosa Sousa 20210026545
-# Maria Sa Gurgel 20210025127
-
 import sys
 
 def read_program(file_path):
