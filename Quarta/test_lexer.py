@@ -82,6 +82,34 @@ class TestLexer(unittest.TestCase):
         lexer = Lexer("")
         esperado = [Token("EOF", "", 1, 1)]
         self._comparar_tokens(lexer, esperado)
+    def operadores_sem_espacos(self):
+        """Testa reconhecimento de operadores sem espaços entre números e operadores."""
+        lexer = Lexer("3+4*2-6/3")
+        esperado = [
+            Token("Numero", "3", 1, 1),
+            Token("Soma", "+", 1, 2),
+            Token("Numero", "4", 1, 3),
+            Token("Mult", "*", 1, 4),
+            Token("Numero", "2", 1, 5),
+            Token("Sub", "-", 1, 6),
+            Token("Numero", "6", 1, 7),
+            Token("Div", "/", 1, 8),
+            Token("Numero", "3", 1, 9),
+            Token("EOF", "", 1, 10)
+        ]
+        self._comparar_tokens(lexer, esperado)
+    def multilinha_com_espacos_e_tabs(self):
+        """Testa expressões em múltiplas linhas com espaços e tabs."""
+        lexer = Lexer("  (\n\t42 + 1\n)")
+        esperado = [
+            Token("ParenEsq", "(", 1, 3),
+            Token("Numero", "42", 2, 2),
+            Token("Soma", "+", 2, 5),
+            Token("Numero", "1", 2, 7),
+            Token("ParenDir", ")", 3, 1),
+            Token("EOF", "", 3, 2)
+        ]
+        self._comparar_tokens(lexer, esperado)
 
     def test_caractere_invalido(self):
         """Testa erro ao encontrar um caractere inválido."""
@@ -99,6 +127,7 @@ class TestLexer(unittest.TestCase):
             if token.tipo == "EOF":
                 break
         self.assertEqual(tokens, esperado)
+    
 
 if __name__ == "__main__":
     unittest.main()
