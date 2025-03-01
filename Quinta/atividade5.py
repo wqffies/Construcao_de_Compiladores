@@ -1,13 +1,11 @@
 import re
 from collections import deque
-
-# Classe base para expressões
-type Op = str  # Definição do tipo para operadores
+from lexer_atividade_anterior import Lexer 
 
 class Exp:
     pass
 
-# Classe para constantes inteiras
+# classe para constantes inteiras
 class Const(Exp):
     def __init__(self, valor: int):
         self.valor = valor
@@ -15,9 +13,9 @@ class Const(Exp):
     def __repr__(self):
         return str(self.valor)
 
-# Classe para operações binárias
+# classe para operações binárias
 class OpBin(Exp):
-    def __init__(self, operador: Op, op_esq: Exp, op_dir: Exp):
+    def __init__(self, operador: str, op_esq: Exp, op_dir: Exp):
         self.operador = operador
         self.op_esq = op_esq
         self.op_dir = op_dir
@@ -25,7 +23,7 @@ class OpBin(Exp):
     def __repr__(self):
         return f'({self.op_esq} {self.operador} {self.op_dir})'
 
-# Função para imprimir a árvore de forma centralizada com barras
+# imprimir a árvore de forma centralizada com barras
 def imprimir_arvore_centralizada(arvore):
     if not isinstance(arvore, OpBin) and not isinstance(arvore, Const):
         return
@@ -51,7 +49,7 @@ def imprimir_arvore_centralizada(arvore):
             preencher_niveis(arvore.op_dir, nivel + 2, (meio + 1, posicao[1]), largura, matriz, conexoes)
     
     h = altura(arvore)
-    largura = 2 ** h  # Largura da matriz
+    largura = 2 ** h  # largura da matriz
     matriz = [[' ' for _ in range(largura)] for _ in range(h * 2)]
     conexoes = [[' ' for _ in range(largura)] for _ in range(h * 2)]
     
@@ -61,12 +59,19 @@ def imprimir_arvore_centralizada(arvore):
         linha = ''.join(conexoes[i]) if i % 2 else ''.join(matriz[i])
         print(linha.rstrip())
 
-# Analisador léxico
+# usando analisador léxico da atividade anterior (atividade 4)
 def tokenizar(entrada: str):
-    tokens = re.findall(r'\d+|[()+\-*/]', entrada)
-    return tokens
+    lexer = Lexer(entrada)
+    tokens = []
+    while True:
+        token = lexer.proximo_token()
+        tokens.append(token)
+        if token.tipo == "EOF":
+            break
+    tokens = [token.lexema for token in tokens]
+    return tokens[:-1]
 
-# Analisador sintático
+# analisador sintático
 def analisar(tokens):
     def prox_token():
         return tokens.pop(0) if tokens else None
@@ -95,7 +100,7 @@ def analisar(tokens):
         raise SyntaxError("Tokens sobrando após análise")
     return arvore
 
-# Interpretador
+# interpretador
 def interpretar(arvore: Exp):
     if isinstance(arvore, Const):
         return arvore.valor
@@ -113,12 +118,14 @@ def interpretar(arvore: Exp):
         else:
             raise ValueError(f"Operador desconhecido: {arvore.operador}")
 
-# Teste do compilador EC1
-entrada = "(8 - (3 + (4 * 5)))"
-tokens = tokenizar(entrada)
-arvore = analisar(tokens)
-resultado = interpretar(arvore)
+if __name__ == "__main__":
+    # exemplo de impressão do programa
+    entrada = "(3 + (6 + (40 * 5)))"
+    tokens = tokenizar(entrada)
+    arvore = analisar(tokens)
+    resultado = interpretar(arvore)
 
-print("Árvore Sintática (AST):")
-imprimir_arvore_centralizada(arvore)
-print("Resultado da expressão:", resultado)
+    print("Árvore Sintática (AST):")
+    imprimir_arvore_centralizada(arvore)
+    print("Resultado da expressão:", resultado)
+
