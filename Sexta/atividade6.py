@@ -1,3 +1,8 @@
+# Alessandra Maria Ramos 20200136795
+# Anna Myllenne Araújo 20220005899
+# Enrique Pedrosa Sousa 20210026545
+# Maria Sa Gurgel 20210025127
+# Gisele Silva Gomes 20210025824
 from arvore_sintatica_atividade_anterior import tokenizar, analisar, interpretar, imprimir_arvore_centralizada, Const, OpBin
 
 def gerarCodigo(arvore):
