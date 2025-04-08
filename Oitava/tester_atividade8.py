@@ -99,7 +99,9 @@ class TestCompiladorEV(unittest.TestCase):
         
         self.assertIn(".lcomm x, 8", codigo)
         self.assertIn(".lcomm y, 8", codigo)
-        self.assertIn("imul $12, %rax", codigo)
+        self.assertIn("mov $12, %rax", codigo)
+        self.assertIn("pop %rbx", codigo)
+        self.assertIn("imul %rbx, %rax", codigo)
         self.assertIn("idiv %rbx", codigo)
 
     # Testes para interpretação
