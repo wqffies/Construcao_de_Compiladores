@@ -158,6 +158,62 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         with self.assertRaises(NameError):
             analisar(src)
+    def test_expressao_complexa_com_parenteses(self):
+        src = """
+        {
+            return (2 + 3) * (4 - 1);
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 15)  # (5) * (3) = 15
+
+    def test_while_com_condicao_complexa(self):
+        src = """
+        a = 5;
+        b = 10;
+        {
+            while a < b {
+                a = a + 1;
+            }
+            return a;
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 10)  # Para quando a == 10
+
+    def test_if_aninhado(self):
+        src = """
+        x = 10;
+        y = 20;
+        res = 0;
+        {
+            if x > 5 {
+                if y > 15 {
+                    res = 1;
+                } else {
+                    res = 0;
+                }
+            } else {
+                res = (0 - 1);
+            }
+            return res;
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 1)
+
+    def test_erro_semantico_variavel_nao_declarada_em_if(self):
+        src = """
+        x = 5;
+        {
+            if x > 0 {
+                y = 10;  # y não foi declarado
+            }
+            return x;
+        }
+        """
+        with self.assertRaises(NameError):
+            analisar(src)
 
     def test_name_error_use_before_decl(self):
         src = """
@@ -169,6 +225,54 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         with self.assertRaises(NameError):
             analisar(src)
+
+    def test_if_com_else_vazio(self):
+        src = """
+        x = 10;
+        res = 0;
+        {
+            if x > 5 {
+                res = 1;
+            } else {
+                
+            }
+            return res;
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 1)
+    def test_atribuicao_multipla(self):
+        src = """
+        a = 5;
+        b = 10;
+        {
+            a = a + 1;
+            b = b - a;
+            return b;
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 4)  # 10 - (5+1) = 4
+    def test_while_vazio(self):
+        src = """
+        x = 3;
+        {
+            while x > 0 {
+                x = x - 1;
+            }
+            return x;
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 0)
+    def test_expressao_aninhada_complexa(self):
+        src = """
+        {
+            return ((2 + 3) * (4 - 1)) == (5 * 3);
+        }
+        """
+        prog = analisar(src)
+        self.assertEqual(interpretar(prog), 1)  # Deve retornar 1 (verdadeiro)
 
 if __name__ == '__main__':
     unittest.main()
