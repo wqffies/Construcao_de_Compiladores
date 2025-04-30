@@ -6,141 +6,159 @@
 
 from arvore_sintatica_atividade9 import (tokenizar, analisar, interpretar, Const, Var, OpBin, Declaracao, ProgramaCmd, Atrib, If, While, Return)
 
-def gerarCodigo(arvore, variaveis=None, _lbl=[0]):
+label_counter = 0
+
+def new_label(prefix):
+    global label_counter
+    label = f"{prefix}{label_counter}"
+    label_counter += 1
+    return label
+
+def gerarCodigo(arvore, variaveis=None):
     if variaveis is None:
         variaveis = set()
 
-    def new_label(prefix):
-        n = _lbl[0]
-        _lbl[0] += 1
-        return f"L{prefix}{n}"
-
     if isinstance(arvore, Const):
-        return f"mov ${arvore.valor}, %rax\n"
+        # Gera código para constante
+        return f"mov ${arvore.valor}, %rax"
 
-    if isinstance(arvore, Var):
+    elif isinstance(arvore, Var):
         if arvore.nome not in variaveis:
             raise NameError(f"Variável não declarada: {arvore.nome}")
         return f"mov {arvore.nome}, %rax"
 
-    if isinstance(arvore, OpBin):
-        codigo_esq = gerarCodigo(arvore.op_esq, variaveis, _lbl)
-        codigo_dir = gerarCodigo(arvore.op_dir, variaveis, _lbl)
-        seq = [
-            codigo_esq,
-            "push %rax",
-            codigo_dir,
-            "pop %rbx"
-        ]
-        op = arvore.operador
-        if op == '+':
-            seq.append("add %rbx, %rax")
-        elif op == '-':
-            seq.append("sub %rbx, %rax")
-            seq.append("neg %rax")  
-        elif op == '*':
-            seq.append("imul %rbx, %rax")
-        elif op == '/':
-            seq.append("xchg %rax, %rbx")
-            seq.append("cqo")
-            seq.append("idiv %rbx")
-        elif op in ('==', '<', '>'):
-            inst = {'==': 'setz', '<': 'setl', '>': 'setg'}[op]
-            seq.extend([
-                "xor %rcx, %rcx",
-                "cmp %rax, %rbx",
-                f"{inst} %cl",
-                "mov %rcx, %rax"
-            ])
-        else:
-            raise ValueError(f"Operador desconhecido: {op}")
-        return "\n".join(seq) + "\n"
+    elif isinstance(arvore, OpBin):
+        # Gera código para expressão binária
+        codigo_esq = gerarCodigo(arvore.op_esq, variaveis)
+        codigo_dir = gerarCodigo(arvore.op_dir, variaveis)
 
-    if isinstance(arvore, Declaracao):
-        variaveis.add(arvore.var)
-        codigo_exp = gerarCodigo(arvore.exp, variaveis, _lbl)
-        return (
-            f".lcomm {arvore.var}, 8\n"
-            f"{codigo_exp}"
-            f"mov %rax, {arvore.var}\n"
+        codigo = (
+            f"{codigo_esq}\n"
+            f"push %rax\n"
+            f"{codigo_dir}\n"
+            f"pop %rbx\n"
         )
 
-    if isinstance(arvore, Atrib):
+        if arvore.operador == '+':
+            codigo += "add %rbx, %rax\n"
+        elif arvore.operador == '-':
+            codigo += "sub %rbx, %rax\n"
+        elif arvore.operador == '*':
+            codigo += "imul %rbx, %rax\n"
+        elif arvore.operador == '/':
+            codigo += "xchg %rax, %rbx\ncqo\nidiv %rbx\n"
+        elif arvore.operador == '==':
+            codigo += (
+                "xor %rcx, %rcx\n"
+                "cmp %rax, %rbx\n"
+                "setz %cl\n"
+                "mov %rcx, %rax\n"
+            )
+        elif arvore.operador == '<':
+            codigo += (
+                "xor %rcx, %rcx\n"
+                "cmp %rax, %rbx\n"
+                "setl %cl\n"
+                "mov %rcx, %rax\n"
+            )
+        elif arvore.operador == '>':
+            codigo += (
+                "xor %rcx, %rcx\n"
+                "cmp %rax, %rbx\n"
+                "setg %cl\n"
+                "mov %rcx, %rax\n"
+            )
+        else:
+            raise ValueError(f"Operador desconhecido: {arvore.operador}")
+
+        return codigo
+
+    elif isinstance(arvore, Declaracao):
+        # Adiciona variável ao conjunto de declaradas
+        variaveis.add(arvore.var)
+        codigo_exp = gerarCodigo(arvore.exp, variaveis)
+        return f".lcomm {arvore.var}, 8\n{codigo_exp}\nmov %rax, {arvore.var}\n"
+
+    elif isinstance(arvore, Atrib):
         if arvore.var not in variaveis:
             raise NameError(f"Variável não declarada: {arvore.var}")
-        codigo_exp = gerarCodigo(arvore.exp, variaveis, _lbl)
+        codigo_exp = gerarCodigo(arvore.exp, variaveis)
+        return f"{codigo_exp}\nmov %rax, {arvore.var}\n"
+
+    elif isinstance(arvore, If):
+        false_label = new_label("Lfalso")
+        end_label = new_label("Lfim")
+        codigo_cond = gerarCodigo(arvore.condicao, variaveis)
+        codigo_entao = "\n".join(gerarCodigo(cmd, variaveis) for cmd in arvore.entao)
+        codigo_senao = "\n".join(gerarCodigo(cmd, variaveis) for cmd in arvore.senao) if arvore.senao else ""
+
         return (
-            f"{codigo_exp}"
-            f"mov %rax, {arvore.var}\n"
+            f"{codigo_cond}\n"
+            f"cmp $0, %rax\n"
+            f"jz {false_label}\n"
+            f"{codigo_entao}\n"
+            f"jmp {end_label}\n"
+            f"{false_label}:\n"
+            f"{codigo_senao}\n"
+            f"{end_label}:\n"
         )
 
-    if isinstance(arvore, If):
-        Lfalso = new_label("falso")
-        Lfim = new_label("fim")
-        seq = []
-        seq.append(gerarCodigo(arvore.condicao, variaveis, _lbl))
-        seq.append("mov %rax, %rax")
-        seq.append(f"jz {Lfalso}")
-        for cmd in arvore.entao:
-            seq.append(gerarCodigo(cmd, variaveis, _lbl).rstrip())
-        seq.append(f"jmp {Lfim}")
-        seq.append(f"{Lfalso}:")
-        for cmd in arvore.senao:
-            seq.append(gerarCodigo(cmd, variaveis, _lbl).rstrip())
-        seq.append(f"{Lfim}:")
-        return "\n".join(seq) + "\n"
+    elif isinstance(arvore, While):
+        start_label = new_label("Linicio")
+        end_label = new_label("Lfim")
+        codigo_cond = gerarCodigo(arvore.condicao, variaveis)
+        codigo_corpo = "\n".join(gerarCodigo(cmd, variaveis) for cmd in arvore.corpo)
 
-    if isinstance(arvore, While):
-        Linicio = new_label("inicio")
-        Lfim = new_label("fim")
-        seq = []
-        seq.append(f"{Linicio}:")
-        seq.append(gerarCodigo(arvore.condicao, variaveis, _lbl))
-        seq.append("mov %rax, %rax")
-        seq.append(f"jz {Lfim}")
-        for cmd in arvore.corpo:
-            seq.append(gerarCodigo(cmd, variaveis, _lbl).rstrip())
-        seq.append(f"jmp {Linicio}")
-        seq.append(f"{Lfim}:")
-        return "\n".join(seq) + "\n"
-
-    if isinstance(arvore, Return):
-        codigo_exp = gerarCodigo(arvore.exp, variaveis, _lbl)
         return (
-            f"{codigo_exp}"
-            "call imprime_num\n"
-            "call sair\n"
+            f"{start_label}:\n"
+            f"{codigo_cond}\n"
+            f"cmp $0, %rax\n"
+            f"jz {end_label}\n"
+            f"{codigo_corpo}\n"
+            f"jmp {start_label}\n"
+            f"{end_label}:\n"
         )
 
-    if isinstance(arvore, ProgramaCmd):
-        codigo_bss = []  
-        codigo_text = []  
+    elif isinstance(arvore, Return):
+        return gerarCodigo(arvore.exp, variaveis)
+
+    elif isinstance(arvore, ProgramaCmd):
+        # Gera código para o programa completo
+        codigo_bss = ""
+        codigo_text = ""
 
         for decl in arvore.declaracoes:
-            part = gerarCodigo(decl, variaveis, _lbl).splitlines()
-            if part[0].startswith(".lcomm"):  
-                codigo_bss.append(part[0])
-                codigo_text.extend(part[1:])  
-            else:
-                codigo_text.append(part)
+            codigo = gerarCodigo(decl, variaveis)
+            # Se houver declaração, ela gera parte de .bss e .text ao mesmo tempo
+            linhas = codigo.splitlines()
+            bss_linha = linhas[0] if linhas[0].startswith(".lcomm") else ""
+            text_linhas = "\n".join(linhas[1:]) if bss_linha else codigo
 
+            if bss_linha:
+                codigo_bss += bss_linha + "\n"
+            codigo_text += text_linhas + "\n"
+
+        # Gera código para os comandos
         for cmd in arvore.comandos:
-            codigo_text.append(gerarCodigo(cmd, variaveis, _lbl).rstrip())
-        codigo_exp = gerarCodigo(arvore.resultado, variaveis, _lbl)
-        codigo_text.append(codigo_exp)
-        codigo_text.append("call imprime_num")  
-        codigo_text.append("call sair")        
+            codigo_text += gerarCodigo(cmd, variaveis) + "\n"
+
+        codigo_resultado = gerarCodigo(arvore.resultado, variaveis)
+
         return (
             ".section .bss\n"
-            + "\n".join(codigo_bss) + "\n"
-            + ".section .text\n"
+            f"{codigo_bss}\n"
+            ".section .text\n"
             ".globl _start\n"
             "_start:\n"
-            + "\n".join(codigo_text) + "\n"
-            + '.include "runtime.s"\n'
+            f"{codigo_text}"
+            f"{codigo_resultado}\n"
+            "call imprime_num\n"
+            "call sair\n"
+            '.include "runtime.s"'
         )
 
-    raise ValueError(f"Tipo de nó desconhecido: {type(arvore)}")
+    else:
+        raise ValueError(f"Tipo de nó desconhecido: {type(arvore)}")
 
 if __name__ == "__main__":
     programa_cmd = """
