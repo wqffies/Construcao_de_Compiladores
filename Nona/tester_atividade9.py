@@ -8,6 +8,7 @@ import unittest
 from arvore_sintatica_atividade9 import tokenizar, analisar, interpretar  
 
 class TestCompiladorCmd(unittest.TestCase):
+    # Teste de atribuição simples e retorno de variável
     def test_atribuicao_simples(self):
         src = """
         x = 5;
@@ -19,6 +20,7 @@ class TestCompiladorCmd(unittest.TestCase):
         resultado = interpretar(prog)
         self.assertEqual(resultado, 5)
 
+    # Teste de if-else quando a condição é verdadeira
     def test_if_else_true(self):
         src = """
         x = 10;
@@ -35,6 +37,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
 
+    # Teste de if-else quando a condição é falsa
     def test_if_else_false(self):
         src = """
         x = 3;
@@ -51,6 +54,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 0)
 
+    # Teste de loop while acumulando soma decrescente
     def test_while_loop(self):
         src = """
         n = 4;
@@ -64,8 +68,10 @@ class TestCompiladorCmd(unittest.TestCase):
         }
         """
         prog = analisar(src)
-        self.assertEqual(interpretar(prog), 10)  # 4 + 3 + 2 + 1 = 10
+        # 4 + 3 + 2 + 1 = 10
+        self.assertEqual(interpretar(prog), 10)
 
+    # Teste combinado de while e if interno
     def test_combinado(self):
         src = """
         a = 5;
@@ -86,6 +92,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 104)
 
+    # Teste de comparação retornando inteiro (true=1, false=0)
     def test_comparacao_retorna_inteiro(self):
         src = """
         {
@@ -94,6 +101,7 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
+
         src2 = """
         {
             return 5 == 6;
@@ -102,6 +110,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog2 = analisar(src2)
         self.assertEqual(interpretar(prog2), 0)
 
+    # Teste de precedência entre soma e comparação
     def test_precedencia_comparacao(self):
         src = """
         {
@@ -111,6 +120,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
 
+    # Teste de comparações encadeadas
     def test_comparacao_encadeada(self):
         src = """
         {
@@ -120,6 +130,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
 
+    # Teste de tokenização de comando if-else
     def test_tokenizacao_cmd(self):
         src = "if x == 1 { return x + 1; } else { return x - 1; }"
         tokens = tokenizar(src)
@@ -131,6 +142,7 @@ class TestCompiladorCmd(unittest.TestCase):
         ]
         self.assertEqual(tokens, expected)
 
+    # Teste de erro de sintaxe: falta de ponto e vírgula
     def test_syntax_error_semicolon(self):
         src = """
         x = 10
@@ -141,6 +153,7 @@ class TestCompiladorCmd(unittest.TestCase):
         with self.assertRaises(SyntaxError):
             analisar(src)
 
+    # Teste de erro de sintaxe: falta de chave de fechamento
     def test_syntax_error_missing_brace(self):
         src = """
         {
@@ -149,6 +162,7 @@ class TestCompiladorCmd(unittest.TestCase):
         with self.assertRaises(SyntaxError):
             analisar(src)
 
+    # Teste de NameError para variável não declarada
     def test_name_error_undeclared(self):
         src = """
         {
@@ -158,6 +172,8 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         with self.assertRaises(NameError):
             analisar(src)
+
+    # Teste de expressão com parênteses complexos
     def test_expressao_complexa_com_parenteses(self):
         src = """
         {
@@ -165,8 +181,10 @@ class TestCompiladorCmd(unittest.TestCase):
         }
         """
         prog = analisar(src)
-        self.assertEqual(interpretar(prog), 15)  # (5) * (3) = 15
+        # (5) * (3) = 15
+        self.assertEqual(interpretar(prog), 15)
 
+    # Teste de while com condição complexa envolvendo duas variáveis
     def test_while_com_condicao_complexa(self):
         src = """
         a = 5;
@@ -179,8 +197,10 @@ class TestCompiladorCmd(unittest.TestCase):
         }
         """
         prog = analisar(src)
-        self.assertEqual(interpretar(prog), 10)  # Para quando a == 10
+        # Para quando a == 10
+        self.assertEqual(interpretar(prog), 10)
 
+    # Teste de if aninhado dentro de outro if
     def test_if_aninhado(self):
         src = """
         x = 10;
@@ -202,6 +222,7 @@ class TestCompiladorCmd(unittest.TestCase):
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
 
+    # Teste de erro semântico: variável não declarada dentro de if
     def test_erro_semantico_variavel_nao_declarada_em_if(self):
         src = """
         x = 5;
@@ -215,6 +236,7 @@ class TestCompiladorCmd(unittest.TestCase):
         with self.assertRaises(NameError):
             analisar(src)
 
+    # Teste de uso antes de declaração (NameError)
     def test_name_error_use_before_decl(self):
         src = """
         y = x + 1;
@@ -226,6 +248,7 @@ class TestCompiladorCmd(unittest.TestCase):
         with self.assertRaises(NameError):
             analisar(src)
 
+    # Teste de if com bloco else vazio
     def test_if_com_else_vazio(self):
         src = """
         x = 10;
@@ -241,6 +264,8 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 1)
+
+    # Teste de múltiplas atribuições sequenciais
     def test_atribuicao_multipla(self):
         src = """
         a = 5;
@@ -252,7 +277,10 @@ class TestCompiladorCmd(unittest.TestCase):
         }
         """
         prog = analisar(src)
-        self.assertEqual(interpretar(prog), 4)  # 10 - (5+1) = 4
+        # 10 - (5+1) = 4
+        self.assertEqual(interpretar(prog), 4)
+
+    # Teste de while com corpo vazio
     def test_while_vazio(self):
         src = """
         x = 3;
@@ -265,6 +293,8 @@ class TestCompiladorCmd(unittest.TestCase):
         """
         prog = analisar(src)
         self.assertEqual(interpretar(prog), 0)
+
+    # Teste de expressão aninhada complexa e comparação de igualdade
     def test_expressao_aninhada_complexa(self):
         src = """
         {
@@ -272,7 +302,7 @@ class TestCompiladorCmd(unittest.TestCase):
         }
         """
         prog = analisar(src)
-        self.assertEqual(interpretar(prog), 1)  # Deve retornar 1 (verdadeiro)
+        self.assertEqual(interpretar(prog), 1)
 
 if __name__ == '__main__':
     unittest.main()

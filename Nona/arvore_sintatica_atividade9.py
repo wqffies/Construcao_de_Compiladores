@@ -5,19 +5,22 @@
 # Gisele Silva Gomes 20210025824
 
 class Token:
+    """Representa um token encontrado no código fonte"""
     def __init__(self, tipo, lexema, linha, coluna):
-        self.tipo = tipo
-        self.lexema = lexema
-        self.linha = linha
-        self.coluna = coluna
+        self.tipo = tipo    # Tipo do token (ex: Numero, Identificador)
+        self.lexema = lexema  # Valor literal do token
+        self.linha = linha    # Número da linha no código
+        self.coluna = coluna  # Coluna inicial do token
 
     def __repr__(self):
         return f'Token({self.tipo}, "{self.lexema}", Linha: {self.linha}, Coluna: {self.coluna})'
 
 class Exp:
+    """Classe base para expressões"""
     pass
 
 class Var(Exp):
+    """Representa uma variável na AST"""
     def __init__(self, nome: str):
         self.nome = nome
     
@@ -25,6 +28,7 @@ class Var(Exp):
         return self.nome
 
 class Const(Exp):
+    """Representa um valor constante na AST"""
     def __init__(self, valor: int):
         self.valor = valor
     
@@ -32,90 +36,106 @@ class Const(Exp):
         return str(self.valor)
 
 class OpBin(Exp):
+    """Representa uma operação binária na AST"""
     def __init__(self, operador: str, op_esq: Exp, op_dir: Exp):
-        self.operador = operador
-        self.op_esq = op_esq
-        self.op_dir = op_dir
+        self.operador = operador  # Operador (+, -, *, etc)
+        self.op_esq = op_esq      # Operando esquerdo
+        self.op_dir = op_dir      # Operando direito
     
     def __repr__(self):
         return f'({self.op_esq} {self.operador} {self.op_dir})'
 
 class Declaracao:
+    """Representa uma declaração de variável"""
     def __init__(self, var: str, exp: Exp):
-        self.var = var
-        self.exp = exp
+        self.var = var  # Nome da variável
+        self.exp = exp  # Expressão de inicialização
     
     def __repr__(self):
         return f"{self.var} = {self.exp};"
 
 class Cmd:
+    """Classe base para comandos"""
     pass
 
 class If(Cmd):
+    """Representa um comando condicional"""
     def __init__(self, condicao: Exp, entao: list[Cmd], senao: list[Cmd]):
-        self.condicao = condicao
-        self.entao = entao      
-        self.senao = senao      
-
+        self.condicao = condicao  # Expressão condicional
+        self.entao = entao        # Lista de comandos 'then'
+        self.senao = senao        # Lista de comandos 'else'
+    
     def __repr__(self):
         return f"If({self.condicao} then={self.entao} else={self.senao})"
 
 class While(Cmd):
+    """Representa um loop while"""
     def __init__(self, condicao: Exp, corpo: list[Cmd]):
-        self.condicao = condicao
-        self.corpo = corpo      
-
+        self.condicao = condicao  # Expressão de condição
+        self.corpo = corpo        # Lista de comandos do loop
+    
     def __repr__(self):
         return f"While({self.condicao}, {self.corpo})"
 
 class Atrib(Cmd):
+    """Representa uma atribuição de variável"""
     def __init__(self, var: str, exp: Exp):
-        self.var = var
-        self.exp = exp
-
+        self.var = var  # Nome da variável
+        self.exp = exp  # Expressão de atribuição
+    
     def __repr__(self):
         return f"{self.var} = {self.exp};"
 
 class Return(Cmd):
+    """Representa um comando de retorno"""
     def __init__(self, exp: Exp):
-        self.exp = exp
-
+        self.exp = exp  # Expressão de retorno
+    
     def __repr__(self):
         return f"Return {self.exp};"
 
 class ProgramaCmd:
+    """Representa o programa completo"""
     def __init__(self, declaracoes: list[Declaracao], comandos: list[Cmd], resultado: Exp):
-        self.declaracoes = declaracoes  
-        self.comandos = comandos        
-        self.resultado = resultado
-
+        self.declaracoes = declaracoes  # Declarações globais
+        self.comandos = comandos        # Lista de comandos
+        self.resultado = resultado      # Expressão de retorno final
+    
     def __repr__(self):
         decls = "\n".join(str(d) for d in self.declaracoes)
-        cmds  = "\n".join(f"  {c}" for c in self.comandos)
+        cmds = "\n".join(f"  {c}" for c in self.comandos)
         return f"{decls}\n{{\n{cmds}\n  return {self.resultado};\n}}"
 
 class Lexer:
+    """Responsável por tokenizar o código fonte"""
     def __init__(self, entrada):
-        self.entrada = entrada
-        self.tamanho = len(entrada)
-        self.posicao = 0
-        self.linha = 1
-        self.coluna = 1
+        self.entrada = entrada      # String de entrada
+        self.tamanho = len(entrada) # Tamanho da entrada
+        self.posicao = 0            # Posição atual
+        self.linha = 1              # Contador de linhas
+        self.coluna = 1             # Contador de colunas
 
     def olhar_proximo_token(self):
+        """Retorna o próximo token sem consumí-lo"""
+        # Salva estado atual
         pos = self.posicao
         linha = self.linha
         col = self.coluna
+        
         token = self.proximo_token()
+        
+        # Restaura estado
         self.posicao = pos
         self.linha = linha
         self.coluna = col
         return token
 
     def proximo_token(self):
+        """Retorna o próximo token consumindo a entrada"""
         while self.posicao < self.tamanho:
             char = self.entrada[self.posicao]
 
+            # Ignora espaços e atualiza contadores de posição
             if char.isspace():
                 if char == '\n':
                     self.linha += 1
@@ -128,6 +148,7 @@ class Lexer:
             inicio_linha = self.linha
             inicio_coluna = self.coluna
 
+            # Números
             if char.isdigit():
                 num_str = char
                 self.posicao += 1
@@ -138,6 +159,7 @@ class Lexer:
                     self.coluna += 1
                 return Token("Numero", num_str, inicio_linha, inicio_coluna)
 
+            # Identificadores e palavras-chave
             if char.isalpha():
                 ident = char
                 self.posicao += 1
@@ -146,6 +168,8 @@ class Lexer:
                     ident += self.entrada[self.posicao]
                     self.posicao += 1
                     self.coluna += 1
+                
+                # Verifica se é palavra-chave
                 tipo = {
                     "if": "If",
                     "else": "Else",
@@ -154,15 +178,18 @@ class Lexer:
                 }.get(ident, "Identificador")
                 return Token(tipo, ident, inicio_linha, inicio_coluna)
 
+            # Operadores e símbolos
             if char == '=':
                 self.posicao += 1
                 self.coluna += 1
+                # Verifica se é '=='
                 if self.posicao < self.tamanho and self.entrada[self.posicao] == '=':
                     self.posicao += 1
                     self.coluna += 1
                     return Token("Igual", "==", inicio_linha, inicio_coluna)
                 return Token("Atribuicao", "=", inicio_linha, inicio_coluna)
 
+            # Mapeia caracteres para tokens
             tipo_token = {
                 '<': "Menor",
                 '>': "Maior",
@@ -186,11 +213,14 @@ class Lexer:
 
         return Token("EOF", "", self.linha, self.coluna)
 
+
 class Parser:
+    """Parser base com métodos para análise de expressões"""
     def __init__(self, lexer: Lexer):
         self.lexer = lexer
 
     def analisar_prim(self):
+        """Analisa expressões primárias (números, variáveis, parênteses)"""
         tok = self.lexer.proximo_token()
         
         if tok.tipo == "Numero":
@@ -205,6 +235,7 @@ class Parser:
         raise SyntaxError(f"Token inesperado: {tok}")
 
     def analisar_exp_m(self):
+        """Analisa multiplicações e divisões (maior precedência)"""
         esq = self.analisar_prim()
         while True:
             tok = self.lexer.olhar_proximo_token()
@@ -217,6 +248,7 @@ class Parser:
         return esq
 
     def analisar_exp_a(self):
+        """Analisa adições e subtrações"""
         esq = self.analisar_exp_m()
         while True:
             tok = self.lexer.olhar_proximo_token()
@@ -229,6 +261,7 @@ class Parser:
         return esq
 
     def analisar_exp_comp(self):
+        """Analisa comparações (menor precedência)"""
         esq = self.analisar_exp_a()
         while True:
             tok = self.lexer.olhar_proximo_token()
@@ -241,11 +274,13 @@ class Parser:
         return esq
 
 class ParserEV(Parser):
+    """Parser estendido com verificação semântica e análise de comandos"""
     def __init__(self, lexer: Lexer):
         super().__init__(lexer)
-        self.tabela_simbolos = set()
+        self.tabela_simbolos = set()  # Tabela de símbolos para variáveis declaradas
 
     def verificar_variaveis(self, exp: Exp):
+        """Verifica se todas as variáveis usadas estão declaradas"""
         if isinstance(exp, Var):
             if exp.nome not in self.tabela_simbolos:
                 raise NameError(f"Variável não declarada: {exp.nome}")
@@ -254,6 +289,7 @@ class ParserEV(Parser):
             self.verificar_variaveis(exp.op_dir)
 
     def analisar_declaracao(self):
+        """Analisa uma declaração de variável (ex: x = 5;)"""
         var_tok = self.lexer.proximo_token()
         if var_tok.tipo != "Identificador":
             raise SyntaxError("Esperado identificador")
@@ -270,6 +306,7 @@ class ParserEV(Parser):
         return Declaracao(var_tok.lexema, exp)
 
     def analisar_comando(self):
+        """Analisa um comando (if, while, atribuição)"""
         tok = self.lexer.olhar_proximo_token()
         if tok.tipo == "If":
             return self.analisar_if()
@@ -281,7 +318,8 @@ class ParserEV(Parser):
             raise SyntaxError(f"Comando inválido: {tok}")
 
     def analisar_if(self):
-        self.lexer.proximo_token()  
+        """Analisa estrutura condicional if-else"""
+        self.lexer.proximo_token()  # Consome 'if'
         cond = self.analisar_exp_comp()
         
         if self.lexer.proximo_token().tipo != "ChaveEsq":
@@ -290,7 +328,7 @@ class ParserEV(Parser):
         entao = []
         while self.lexer.olhar_proximo_token().tipo != "ChaveDir":
             entao.append(self.analisar_comando())
-        self.lexer.proximo_token()  
+        self.lexer.proximo_token()  # Consome '}'
         
         if self.lexer.proximo_token().tipo != "Else":
             raise SyntaxError("Esperado 'else' após bloco 'then'")
@@ -301,12 +339,13 @@ class ParserEV(Parser):
         senao = []
         while self.lexer.olhar_proximo_token().tipo != "ChaveDir":
             senao.append(self.analisar_comando())
-        self.lexer.proximo_token()  
+        self.lexer.proximo_token()  # Consome '}'
         
         return If(cond, entao, senao)
 
     def analisar_while(self):
-        self.lexer.proximo_token()  
+        """Analisa loop while"""
+        self.lexer.proximo_token()  # Consome 'while'
         cond = self.analisar_exp_comp()
         
         if self.lexer.proximo_token().tipo != "ChaveEsq":
@@ -315,11 +354,12 @@ class ParserEV(Parser):
         corpo = []
         while self.lexer.olhar_proximo_token().tipo != "ChaveDir":
             corpo.append(self.analisar_comando())
-        self.lexer.proximo_token()  
+        self.lexer.proximo_token()  # Consome '}'
         
         return While(cond, corpo)
 
     def analisar_atrib(self):
+        """Analisa atribuição de variável (ex: x = 10;)"""
         var_tok = self.lexer.proximo_token()
         if var_tok.tipo != "Identificador":
             raise SyntaxError("Esperado identificador")
@@ -337,6 +377,7 @@ class ParserEV(Parser):
         return Atrib(var_tok.lexema, exp)
 
     def analisar_programa(self):
+        """Analisa o programa completo"""
         declaracoes = []
         while self.lexer.olhar_proximo_token().tipo == "Identificador":
             declaracoes.append(self.analisar_declaracao())
@@ -348,7 +389,7 @@ class ParserEV(Parser):
         while self.lexer.olhar_proximo_token().tipo != "Return":
             comandos.append(self.analisar_comando())
 
-        self.lexer.proximo_token()  
+        self.lexer.proximo_token()  # Consome 'return'
         resultado = self.analisar_exp_comp()
         if self.lexer.proximo_token().tipo != "PontoVirgula":
             raise SyntaxError("Esperado ';' após return")
@@ -358,18 +399,23 @@ class ParserEV(Parser):
         
         return ProgramaCmd(declaracoes, comandos, resultado)
 
+
+# Função principal de interpretação de nós da árvore sintática
 def interpretar(no, contexto=None):
     if contexto is None:
         contexto = {}
 
+    # Caso o nó seja uma constante, retorna seu valor diretamente
     if isinstance(no, Const):
         return no.valor
 
+    # Caso o nó seja uma variável, busca seu valor no contexto
     if isinstance(no, Var):
         if no.nome not in contexto:
             raise NameError(f"Variável não definida: {no.nome}")
         return contexto[no.nome]
 
+    # Caso o nó seja uma operação binária (ex: +, -, *, /, <, >, ==)
     if isinstance(no, OpBin):
         esq = interpretar(no.op_esq, contexto)
         dir = interpretar(no.op_dir, contexto)
@@ -380,7 +426,7 @@ def interpretar(no, contexto=None):
         if no.operador == '*':
             return esq * dir
         if no.operador == '/':
-            return esq // dir
+            return esq // dir  # divisão inteira
         if no.operador == '<':
             return 1 if esq < dir else 0
         if no.operador == '>':
@@ -389,17 +435,20 @@ def interpretar(no, contexto=None):
             return 1 if esq == dir else 0
         raise ValueError(f"Operador desconhecido: {no.operador}")
 
+    # Declaração de variável (ex: int x = 5)
     if isinstance(no, Declaracao):
         valor = interpretar(no.exp, contexto)
         contexto[no.var] = valor
         return None
 
+    # Atribuição de valor a uma variável já existente
     if isinstance(no, Atrib):
         if no.var not in contexto:
             raise NameError(f"Variável não declarada: {no.var}")
         contexto[no.var] = interpretar(no.exp, contexto)
         return None
 
+    # Estrutura condicional (if/else)
     if isinstance(no, If):
         cond = interpretar(no.condicao, contexto)
         bloco = no.entao if cond != 0 else no.senao
@@ -409,6 +458,7 @@ def interpretar(no, contexto=None):
                 return res
         return None
 
+    # Estrutura de repetição (while)
     if isinstance(no, While):
         while interpretar(no.condicao, contexto) != 0:
             for cmd in no.corpo:
@@ -417,9 +467,11 @@ def interpretar(no, contexto=None):
                     return res
         return None
 
+    # Retorno de função
     if isinstance(no, Return):
         return interpretar(no.exp, contexto)
 
+    # Execução do programa principal
     if isinstance(no, ProgramaCmd):
         for decl in no.declaracoes:
             interpretar(decl, contexto)
@@ -433,19 +485,21 @@ def interpretar(no, contexto=None):
 
     raise TypeError(f"Tipo de nó não suportado na interpretação: {type(no)}")
 
+# Analisa o código de entrada, retornando a árvore sintática
 def analisar(entrada: str):
     lexer = Lexer(entrada)
     parser = ParserEV(lexer)
-    programa = parser.analisar_programa()      
+    programa = parser.analisar_programa()
     if lexer.proximo_token().tipo != "EOF":
         raise SyntaxError("Tokens não esperados no final")
     return programa
 
+# Converte a entrada em uma lista de tokens (opcionalmente com metadados)
 def tokenizar(entrada: str, incluir_metadados: bool = False):
     """Converte a entrada em uma lista de tokens."""
     lexer = Lexer(entrada)
     tokens = []
-    
+
     try:
         while True:
             token = lexer.proximo_token()
@@ -457,14 +511,16 @@ def tokenizar(entrada: str, incluir_metadados: bool = False):
             print(f"Erro léxico: {e}")
             return None
         raise
-    
+
     return tokens if incluir_metadados else [token.lexema for token in tokens]
 
+# Impressão de árvore sintática centralizada (modo visual em ASCII)
 def imprimir_arvore_centralizada(arvore):
     tipos_validos = (OpBin, Const, Var, Declaracao, ProgramaCmd)
     if not isinstance(arvore, tipos_validos):
         return
-    
+
+    # Função para calcular altura da árvore
     def altura(arvore):
         if isinstance(arvore, (Const, Var)):
             return 1
@@ -473,7 +529,8 @@ def imprimir_arvore_centralizada(arvore):
         elif isinstance(arvore, OpBin):
             return 1 + max(altura(arvore.op_esq), altura(arvore.op_dir))
         return 0
-    
+
+    # Retorna representação textual de um nó
     def valor_no(no):
         if isinstance(no, Const):
             return str(no.valor)
@@ -486,14 +543,15 @@ def imprimir_arvore_centralizada(arvore):
         elif isinstance(no, ProgramaCmd):
             return "PROG"
         return "?"
-    
+
+    # Preenche os níveis da árvore para exibição
     def preencher_niveis(arvore, nivel, posicao, largura, matriz, conexoes):
         if arvore is None:
             return
-        
+
         meio = (posicao[0] + posicao[1]) // 2
         matriz[nivel][meio] = valor_no(arvore)
-        
+
         if isinstance(arvore, OpBin):
             esq_meio = (posicao[0] + meio - 1) // 2
             dir_meio = (meio + 1 + posicao[1]) // 2
@@ -507,14 +565,15 @@ def imprimir_arvore_centralizada(arvore):
             preencher_niveis(arvore.exp, nivel + 2, (meio, posicao[1]), largura, matriz, conexoes)
         elif isinstance(arvore, ProgramaCmd):
             preencher_niveis(arvore.resultado, nivel, posicao, largura, matriz, conexoes)
-    
+
     h = altura(arvore)
     largura = 2 ** h
     matriz = [[' ' for _ in range(largura)] for _ in range(h * 2)]
     conexoes = [[' ' for _ in range(largura)] for _ in range(h * 2)]
-    
+
     preencher_niveis(arvore, 0, (0, largura - 1), largura, matriz, conexoes)
-    
+
+    # Imprime a árvore linha por linha
     for i in range(h * 2):
         linha = ''.join(conexoes[i]) if i % 2 else ''.join(matriz[i])
         print(linha.rstrip())
