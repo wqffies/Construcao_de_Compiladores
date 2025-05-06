@@ -1,10 +1,7 @@
-# Alessandra Maria Ramos 20200136795
-# Anna Myllenne Araújo 20220005899
-# Enrique Pedrosa Sousa 20210026545
-# Maria Sa Gurgel 20210025127
-# Gisele Silva Gomes 20210025824
+# gerador de assembly com geração de arquivo .s
 
 from arvore_sintatica_atividade9 import (tokenizar, analisar, interpretar, Const, Var, OpBin, Declaracao, ProgramaCmd, Atrib, If, While, Return)
+import os
 
 label_counter = 0
 
@@ -129,7 +126,6 @@ def gerarCodigo(arvore, variaveis=None):
 
         for decl in arvore.declaracoes:
             codigo = gerarCodigo(decl, variaveis)
-            # Se houver declaração, ela gera parte de .bss e .text ao mesmo tempo
             linhas = codigo.splitlines()
             bss_linha = linhas[0] if linhas[0].startswith(".lcomm") else ""
             text_linhas = "\n".join(linhas[1:]) if bss_linha else codigo
@@ -154,11 +150,12 @@ def gerarCodigo(arvore, variaveis=None):
             f"{codigo_resultado}\n"
             "call imprime_num\n"
             "call sair\n"
-            '.include "runtime.s"'
+            ".include \"runtime.s\"\n"
         )
 
     else:
         raise ValueError(f"Tipo de nó desconhecido: {type(arvore)}")
+
 
 if __name__ == "__main__":
     programa_cmd = """
@@ -177,5 +174,10 @@ if __name__ == "__main__":
     """
 
     arvore_cmd = analisar(programa_cmd)
-    print("\nCódigo Gerado:")
-    print(gerarCodigo(arvore_cmd))
+    codigo = gerarCodigo(arvore_cmd)
+
+    # Escreve assembly e runtime
+    with open("saida.s", "w") as f:
+        f.write(codigo)
+
+    print("Arquivo 'saida.s' gerado.")
