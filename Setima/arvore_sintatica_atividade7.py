@@ -194,7 +194,7 @@ def interpretar(arvore: Exp):
         elif arvore.operador == '*':
             return esq * dir
         elif arvore.operador == '/':
-            return esq / dir
+            return esq // dir
         else:
             raise ValueError(f"Operador desconhecido: {arvore.operador}")
 
