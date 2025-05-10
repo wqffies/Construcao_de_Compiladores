@@ -143,7 +143,7 @@ _start:
 def main():
     # Verifica se foi fornecido o arquivo de entrada
     if len(sys.argv) < 2:
-        print("Uso: python atividade8.py arquivo_entrada.ec")
+        print("Uso: python atividade8.py arquivo_entrada.ev")
         sys.exit(1)
     
     arquivo_entrada = sys.argv[1]
@@ -166,8 +166,8 @@ def main():
         codigo_completo = gerarProgramaCompleto(arvore)
         
         # Determina o nome do arquivo de saída
-        if arquivo_entrada.endswith('.ec'):
-            arquivo_saida = arquivo_entrada.replace('.ec', '.s')
+        if arquivo_entrada.endswith('.ev'):
+            arquivo_saida = arquivo_entrada.replace('.ev', '.s')
         else:
             arquivo_saida = arquivo_entrada + '.s'
         

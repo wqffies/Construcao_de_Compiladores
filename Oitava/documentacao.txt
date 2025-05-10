@@ -7,10 +7,10 @@ Documentação Atividade 6:
 # Gisele Silva Gomes 20210025824
 
 
-EXECUTAR NO TERMINAL:
+EXevUTAR NO TERMINAL:
 
-Para passar um programa de entrada .ec e ter o Assembly Gerado (A saída será um arquivo <arquivo_entrada>.s):
---> python atividade8.py <arquivo_entrada>.ec
+Para passar um programa de entrada .ev e ter o Assembly Gerado (A saída será um arquivo <arquivo_entrada>.s):
+--> python atividade8.py <arquivo_entrada>.ev
 
 
 Para realizar os testes:
