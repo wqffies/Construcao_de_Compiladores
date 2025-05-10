@@ -1,5 +1,5 @@
 import unittest
-from gerador_de_codigo_atividade8 import tokenizar, analisar, gerarCodigo, interpretar
+from atividade8 import tokenizar, analisar, gerarCodigo, interpretar
 
 class TestCompiladorEV(unittest.TestCase):
     # Testes para declarações de variáveis

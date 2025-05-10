@@ -1,0 +1,17 @@
+Documentação Atividade 6:
+
+# Alessandra Maria Ramos 20200136795
+# Anna Myllenne Araújo 20220005899
+# Enrique Pedrosa Sousa 20210026545
+# Maria Sa Gurgel 20210025127
+# Gisele Silva Gomes 20210025824
+
+
+EXECUTAR NO TERMINAL:
+
+Para passar um programa de entrada .ec e ter o Assembly Gerado (A saída será um arquivo <arquivo_entrada>.s):
+--> python atividade8.py <arquivo_entrada>.ec
+
+
+Para realizar os testes:
+--> python tester_atividade8.py
