@@ -516,5 +516,16 @@ class TestesCompiladorFun(unittest.TestCase):
         with self.assertRaises(Exception):
             analisar(codigo)
 
+    # Teste de erro: Declaração de variável na main
+    def test_erro_declaracao_variavel_main(self):
+        codigo = """
+        main {
+            var x = 6;
+            return x;
+        }
+        """
+        with self.assertRaises(Exception):
+            analisar(codigo)
+
 if __name__ == '__main__':
     unittest.main()
