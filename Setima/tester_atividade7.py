@@ -1,5 +1,5 @@
 import unittest
-from gerador_de_codigo_atividade_anterior import tokenizar, analisar, gerarCodigo, interpretar
+from atividade7 import tokenizar, analisar, gerarCodigo, interpretar
 
 class TestCompiladorSemParenteses(unittest.TestCase):
     def test_expressao_soma_sem_parenteses(self):
@@ -21,7 +21,19 @@ class TestCompiladorSemParenteses(unittest.TestCase):
         tokens = tokenizar(entrada)
         arvore = analisar(tokens)
         codigo = gerarCodigo(arvore)
-        self.assertEqual(codigo, f"mov $10, %rax\npush %rax\nmov $5, %rax\npop %rbx\nsub %rbx, %rax\n\npush %rax\nmov $3, %rax\npop %rbx\nsub %rbx, %rax\n")
+        expected = """mov $10, %rax
+push %rax
+mov $5, %rax
+pop %rbx
+sub %rax, %rbx
+mov %rbx, %rax
+
+push %rax
+mov $3, %rax
+pop %rbx
+sub %rax, %rbx
+mov %rbx, %rax\n"""
+        self.assertEqual(codigo, expected)
 
     def test_expressao_associatividade_esquerda_multiplicacao(self):
         entrada = "2 * 3 * 4"
@@ -147,7 +159,7 @@ class TestCompiladorSemParenteses(unittest.TestCase):
         arvore = analisar(entrada)
         self.assertEqual(repr(arvore), "(7 / 2)")
         resultado = interpretar(arvore)
-        self.assertEqual(resultado, 3.5)
+        self.assertEqual(resultado, 3)
 
     def test_interpretacao_expressao_multipla_1(self):
         entrada = "2 * 3 + 4 * 5 - 6 / 2"

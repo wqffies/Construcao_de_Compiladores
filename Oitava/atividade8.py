@@ -50,7 +50,8 @@ def gerarCodigo(arvore, variaveis=None):
         elif arvore.operador == '-':
             # Subtração CORRIGIDA: %rbx = %rbx - %rax (pois %rbx contém o primeiro operando)
             # Depois movemos o resultado para %rax
-            codigo += "sub %rax, %rbx\n" 
+            codigo += "sub %rax, %rbx\n"
+            codigo += "mov %rbx, %rax\n"
         elif arvore.operador == '*':
             # Multiplicação: %rax = %rbx * %rax
             codigo += "imul %rbx, %rax\n"
