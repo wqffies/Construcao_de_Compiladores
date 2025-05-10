@@ -202,23 +202,6 @@ class TestesCompiladorFun(unittest.TestCase):
         self.assertEqual(interpretar(prog), 1)
 
     # Teste de função chamando função
-    # def test_funcao_chama_funcao(self):
-    #     codigo = """
-    #     fun adiciona_um(x) {
-    #         return x + 1;
-    #     }
-        
-    #     fun adiciona_dois(x) {
-    #         return adiciona_um(adiciona_um(x));
-    #     }
-        
-    #     main {
-    #         return adiciona_dois(3);
-    #     }
-    #     """
-    #     prog = analisar(codigo)
-    #     self.assertEqual(interpretar(prog), 5)
-    # Teste de função chamando função
     def test_funcao_chama_funcao(self):
         codigo = """
         fun adicionaUm(x) {
